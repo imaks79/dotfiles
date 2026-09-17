@@ -23,6 +23,12 @@
 | zsh | zsh | zsh | zsh | zsh | zsh | zsh |
 | pass | pass | pass | pass | pass | pass | pass |
 | gpg | gnupg | gnupg | gnupg2 | gnupg | gpg2 | gnupg |
+| eza | eza | eza | eza | eza | eza | eza |
+
+После установки zsh скрипт также делает его оболочкой по умолчанию
+(`chsh`, функция `set_default_shell_zsh()`) — путь к бинарю при необходимости
+дописывается в `/etc/shells`. Если `chsh` не проходит автоматически (нет прав,
+недоступен интерактивно), команда попадает в список "сделать вручную".
 
 ## Терминал
 
