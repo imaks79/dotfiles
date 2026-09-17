@@ -139,6 +139,8 @@ install_core_packages() {
     pkg_native neovim neovim     neovim neovim neovim neovim
     pkg_native tmux   tmux       tmux   tmux   tmux   tmux
     pkg_native zsh    zsh        zsh    zsh    zsh    zsh
+    pkg_native pass   pass       pass   pass   pass   pass
+    pkg_native gnupg  gnupg      gnupg2 gnupg  gpg2   gnupg
 }
 
 install_terminal() {
@@ -222,6 +224,12 @@ install_oh_my_zsh() {
     ZSH="$HOME/.config/.oh-my-zsh" sh -c \
         "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" \
         "" --unattended --keep-zshrc
+}
+
+install_oh_my_zsh_plugins() {
+    local custom="${ZSH_CUSTOM:-$HOME/.config/.oh-my-zsh/custom}"
+    clone_or_update https://github.com/zsh-users/zsh-syntax-highlighting.git "$custom/plugins/zsh-syntax-highlighting"
+    clone_or_update https://github.com/zsh-users/zsh-autosuggestions.git     "$custom/plugins/zsh-autosuggestions"
 }
 
 install_oh_my_tmux() {

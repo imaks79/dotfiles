@@ -8,8 +8,9 @@
 #   ./setup.sh backup [файл]        — упаковать config/ + ~/.ssh в tar.gz
 #   ./setup.sh restore <файл.tar.gz> — восстановить config/ (и, по желанию, ~/.ssh) из архива
 #
-# Устанавливает: oh-my-zsh, oh-my-tmux, git, ssh, zshrc, mc, alacritty, nvim
-# (+ ядро AstroNvim), htop, gitignore_global, musikcube; шрифты
+# Устанавливает: oh-my-zsh (+ плагины zsh-autosuggestions,
+# zsh-syntax-highlighting), oh-my-tmux, git, ssh, zshrc, mc, alacritty, nvim
+# (+ ядро AstroNvim), htop, gitignore_global, musikcube, pass, gpg; шрифты
 # Hack/0xProto/JetBrainsMono Nerd Font; утилиты yazi, chafa, pdftoipe, 7-zip,
 # bat, tree, duf, tldr, termusic; rust, uv, docker.
 # На Linux дополнительно ставит flatpak + репозиторий flathub, на macOS — Homebrew.
@@ -32,6 +33,7 @@ cmd_install() {
     install_docker
     install_fonts
     install_oh_my_zsh
+    install_oh_my_zsh_plugins
     install_oh_my_tmux
     install_astronvim_core
     install_alacritty_theme
