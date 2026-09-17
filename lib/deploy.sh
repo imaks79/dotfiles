@@ -43,28 +43,46 @@ deploy_configs() {
     ok "Конфиги разложены"
 }
 
+# Копирует живой файл в dotfiles, но не падает и не шумит, если живой файл —
+# это уже симлинк на тот же самый tracked-файл (штатное состояние после deploy_configs).
+sync_from_live() {
+    local live="$1" tracked="$2"
+    [[ -f "$live" ]] || return 0
+    [[ -e "$tracked" ]] && [[ "$live" -ef "$tracked" ]] && return 0
+    mkdir -p "$(dirname "$tracked")"
+    cp "$live" "$tracked"
+}
+
 # Заполняет config/ из ТЕКУЩЕЙ живой системы — используется, когда это "родная"
-# машина и восстанавливать не с чего (запускается вручную через: setup.sh seed)
+# машина и восстанавливать не с чего (запускается вручную через: setup.sh seed),
+# либо чтобы подтянуть в dotfiles правки, сделанные напрямую в системе.
 seed_configs_from_system() {
     info "Собираю текущие конфиги системы в $CONFIG_DIR"
     mkdir -p "$CONFIG_DIR"/{zsh,tmux,git,ssh,alacritty,mc,htop,musikcube}
 
-    [[ -f "$HOME/.zshrc" ]]                          && cp "$HOME/.zshrc" "$CONFIG_DIR/zsh/.zshrc"
-    [[ -f "$HOME/.config/tmux/tmux.conf.local" ]]    && cp "$HOME/.config/tmux/tmux.conf.local" "$CONFIG_DIR/tmux/tmux.conf.local"
-    [[ -f "$HOME/.config/git/.gitconfig" ]]          && cp "$HOME/.config/git/.gitconfig" "$CONFIG_DIR/git/.gitconfig"
-    [[ -f "$HOME/.config/git/.gitignore_global" ]]   && cp "$HOME/.config/git/.gitignore_global" "$CONFIG_DIR/git/.gitignore_global"
-    [[ -f "$HOME/.ssh/config" ]]                     && cp "$HOME/.ssh/config" "$CONFIG_DIR/ssh/config"
-    [[ -f "$HOME/.config/alacritty/alacritty.toml" ]] && cp "$HOME/.config/alacritty/alacritty.toml" "$CONFIG_DIR/alacritty/alacritty.toml"
-    [[ -d "$HOME/.config/nvim" ]]                    && rsync -a --exclude '.git' "$HOME/.config/nvim/" "$CONFIG_DIR/nvim/"
-    [[ -f "$HOME/.config/mc/ini" ]]                  && cp "$HOME/.config/mc/ini" "$CONFIG_DIR/mc/ini"
-    [[ -f "$HOME/.config/mc/panels.ini" ]]           && cp "$HOME/.config/mc/panels.ini" "$CONFIG_DIR/mc/panels.ini"
-    [[ -f "$HOME/.config/htop/htoprc" ]]             && cp "$HOME/.config/htop/htoprc" "$CONFIG_DIR/htop/htoprc"
+    sync_from_live "$HOME/.zshrc"                          "$CONFIG_DIR/zsh/.zshrc"
+    sync_from_live "$HOME/.config/tmux/tmux.conf.local"     "$CONFIG_DIR/tmux/tmux.conf.local"
+    sync_from_live "$HOME/.config/git/.gitconfig"           "$CONFIG_DIR/git/.gitconfig"
+    sync_from_live "$HOME/.config/git/.gitignore_global"    "$CONFIG_DIR/git/.gitignore_global"
+    sync_from_live "$HOME/.ssh/config"                      "$CONFIG_DIR/ssh/config"
+    sync_from_live "$HOME/.config/alacritty/alacritty.toml" "$CONFIG_DIR/alacritty/alacritty.toml"
+    sync_from_live "$HOME/.config/mc/ini"                   "$CONFIG_DIR/mc/ini"
+    sync_from_live "$HOME/.config/mc/panels.ini"            "$CONFIG_DIR/mc/panels.ini"
+    sync_from_live "$HOME/.config/htop/htoprc"              "$CONFIG_DIR/htop/htoprc"
+
+    if [[ -d "$HOME/.config/nvim" ]] && ! [[ "$HOME/.config/nvim" -ef "$CONFIG_DIR/nvim" ]]; then
+        rsync -a --exclude '.git' "$HOME/.config/nvim/" "$CONFIG_DIR/nvim/"
+    fi
+
     if [[ -d "$HOME/.config/musikcube" ]]; then
-        cp "$HOME"/.config/musikcube/settings.json   "$CONFIG_DIR/musikcube/" 2>/dev/null || true
-        cp "$HOME"/.config/musikcube/hotkeys.json    "$CONFIG_DIR/musikcube/" 2>/dev/null || true
-        cp "$HOME"/.config/musikcube/libraries.json  "$CONFIG_DIR/musikcube/" 2>/dev/null || true
-        cp "$HOME"/.config/musikcube/playback.json   "$CONFIG_DIR/musikcube/" 2>/dev/null || true
-        cp "$HOME"/.config/musikcube/plugin_*.json   "$CONFIG_DIR/musikcube/" 2>/dev/null || true
+        local f base
+        for f in "$HOME"/.config/musikcube/settings.json "$HOME"/.config/musikcube/hotkeys.json \
+                 "$HOME"/.config/musikcube/libraries.json "$HOME"/.config/musikcube/playback.json \
+                 "$HOME"/.config/musikcube/plugin_*.json; do
+            [[ -e "$f" ]] || continue
+            base="$(basename "$f")"
+            sync_from_live "$f" "$CONFIG_DIR/musikcube/$base"
+        done
     fi
 
     if [[ ! -d "$DOTFILES_DIR/.git" ]]; then
