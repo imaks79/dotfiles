@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Общие хелперы: логирование, определение ОС/пакетного менеджера, симлинки.
 
-C_RESET=$'\033[0m'; C_GREEN=$'\033[32m'; C_YELLOW=$'\033[33m'; C_RED=$'\033[31m'; C_BLUE=$'\033[34m'
+C_RESET=$'\033[0m'; C_GREEN=$'\033[32m'; C_YELLOW=$'\033[33m'; C_RED=$'\033[31m'; C_BLUE=$'\033[34m'; C_MAGENTA=$'\033[35m'
 
 info()  { printf '%s[*]%s %s\n' "$C_BLUE"   "$C_RESET" "$*"; }
 ok()    { printf '%s[+]%s %s\n' "$C_GREEN"  "$C_RESET" "$*"; }
@@ -58,6 +58,33 @@ link_file() {
     fi
     ln -s "$src" "$dst"
     ok "Симлинк: $dst -> $src"
+}
+
+print_astra() {
+    printf '%s' "$C_MAGENTA"
+    cat <<'EOF'
+
+           *    \   |   /    *
+             *   \  |  /   *
+               *  \ | /  *
+          * * *  \\\|///  * * *
+                 ( ( o ) )
+          * * *  ///|\\\  * * *
+               *  / | \  *
+             *   /  |  \   *
+           *    /   |   \    *
+
+EOF
+    printf '%s' "$C_GREEN"
+    cat <<'EOF'
+                     |
+                     |
+                    /|\
+                   / | \
+                     |
+                    / \
+EOF
+    printf '%s\n' "$C_RESET"
 }
 
 # clone_or_update <repo-url> <целевая директория>

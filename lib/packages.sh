@@ -86,6 +86,14 @@ install_core_packages() {
 # Делает zsh логин-шеллом пользователя по умолчанию (chsh).
 # chsh требует, чтобы бинарь zsh был в /etc/shells — дописываем при необходимости
 # (актуально и для brew-версии zsh на macOS, её пути там по умолчанию нет).
+registered_shell() {
+    if [[ "$OS" == "macos" ]]; then
+        dscl . -read "/Users/$USER" UserShell 2>/dev/null | awk '{print $2}'
+    else
+        getent passwd "$USER" 2>/dev/null | cut -d: -f7
+    fi
+}
+
 set_default_shell_zsh() {
     local zsh_path
     zsh_path="$(command -v zsh)"
@@ -95,9 +103,9 @@ set_default_shell_zsh() {
     fi
 
     local current_shell
-    current_shell="$(dscl . -read "/Users/$USER" UserShell 2>/dev/null | awk '{print $2}')"
-    [[ -n "$current_shell" ]] || current_shell="$(getent passwd "$USER" 2>/dev/null | cut -d: -f7)"
+    current_shell="$(registered_shell)"
     [[ -n "$current_shell" ]] || current_shell="$SHELL"
+    info "Текущая оболочка в системе (passwd): ${current_shell:-<не определена>}"
 
     if [[ "$current_shell" == "$zsh_path" ]]; then
         ok "zsh уже оболочка по умолчанию"
@@ -109,12 +117,25 @@ set_default_shell_zsh() {
         echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
     fi
 
-    info "Делаю zsh оболочкой по умолчанию для $USER"
+    info "Делаю zsh ($zsh_path) оболочкой по умолчанию для $USER"
+    local chsh_status
     if chsh -s "$zsh_path" "$USER"; then
-        ok "zsh теперь оболочка по умолчанию (подействует при следующем входе)"
+        chsh_status=0
     else
-        warn "Не удалось автоматически сменить оболочку"
-        MANUAL_TODO+=("chsh -s $zsh_path")
+        chsh_status=$?
+    fi
+
+    # chsh может отрапортовать успех, но реально не поменять запись (PAM,
+    # nsswitch на LDAP/AD и т.п.) — поэтому перечитываем passwd, а не верим
+    # только коду возврата.
+    local new_shell
+    new_shell="$(registered_shell)"
+    if [[ "$new_shell" == "$zsh_path" ]]; then
+        ok "zsh теперь оболочка по умолчанию (подействует в НОВОМ логин-сеансе — новое окно терминала может быть недостаточно, если оно не запускает login shell; попробуйте перелогиниться)"
+    else
+        warn "chsh завершился с кодом $chsh_status, но по passwd оболочка всё ещё: ${new_shell:-<не определена>}"
+        warn "Проверьте вручную: getent passwd \$USER | cut -d: -f7   и   chsh -s $zsh_path"
+        MANUAL_TODO+=("chsh -s $zsh_path (после chsh оболочка в passwd не поменялась — см. вывод выше)")
     fi
 }
 

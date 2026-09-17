@@ -60,6 +60,7 @@ cmd_install() {
         done
     fi
     info "Перезапустите терминал (или выполните: exec zsh), чтобы подхватить zsh/tmux."
+    print_astra
 }
 
 case "${1:-install}" in
