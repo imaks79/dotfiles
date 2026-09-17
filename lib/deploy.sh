@@ -107,7 +107,11 @@ backup_to_archive() {
         warn "В архив добавляется ПОЛНЫЙ ~/.ssh, включая приватные ключи."
         warn "Передавайте файл только по доверенному каналу и не публикуйте его."
         mkdir -p "$work/ssh-full"
-        rsync -a "$HOME/.ssh/" "$work/ssh-full/"
+        # --no-specials пропускает сокеты/FIFO (например, живой сокет ssh-agent) —
+        # rsync иначе пытается их пересоздать и падает с mkstempsock: Invalid
+        # argument на macOS, если путь во временном каталоге упирается в лимит
+        # длины AF_UNIX-сокета (~104 байта); сами сокеты не переживут восстановление.
+        rsync -a --no-specials "$HOME/.ssh/" "$work/ssh-full/"
     fi
     tar -czf "$dest" -C "$work" .
     rm -rf "$work"
