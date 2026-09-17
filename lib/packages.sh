@@ -69,7 +69,7 @@ pkg_cask() {
 }
 
 install_core_packages() {
-    info "Базовые пакеты: git, ssh, mc, htop, nvim, tmux, zsh"
+    info "Базовые пакеты: git, ssh, mc, htop, nvim, tmux, zsh, eza"
     pkg_native git    git        git    git    git    git
     pkg_native ""     openssh-client openssh-clients openssh openssh openssh-client
     command -v ssh >/dev/null 2>&1 || pkg_native openssh openssh openssh openssh openssh openssh
@@ -80,6 +80,42 @@ install_core_packages() {
     pkg_native zsh    zsh        zsh    zsh    zsh    zsh
     pkg_native pass   pass       pass   pass   pass   pass
     pkg_native gnupg  gnupg      gnupg2 gnupg  gpg2   gnupg
+    pkg_native eza    eza        eza    eza    eza    eza
+}
+
+# Делает zsh логин-шеллом пользователя по умолчанию (chsh).
+# chsh требует, чтобы бинарь zsh был в /etc/shells — дописываем при необходимости
+# (актуально и для brew-версии zsh на macOS, её пути там по умолчанию нет).
+set_default_shell_zsh() {
+    local zsh_path
+    zsh_path="$(command -v zsh)"
+    if [[ -z "$zsh_path" ]]; then
+        warn "zsh не найден, пропускаю смену оболочки по умолчанию"
+        return 1
+    fi
+
+    local current_shell
+    current_shell="$(dscl . -read "/Users/$USER" UserShell 2>/dev/null | awk '{print $2}')"
+    [[ -n "$current_shell" ]] || current_shell="$(getent passwd "$USER" 2>/dev/null | cut -d: -f7)"
+    [[ -n "$current_shell" ]] || current_shell="$SHELL"
+
+    if [[ "$current_shell" == "$zsh_path" ]]; then
+        ok "zsh уже оболочка по умолчанию"
+        return 0
+    fi
+
+    if ! grep -qxF "$zsh_path" /etc/shells 2>/dev/null; then
+        info "Добавляю $zsh_path в /etc/shells"
+        echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
+    fi
+
+    info "Делаю zsh оболочкой по умолчанию для $USER"
+    if chsh -s "$zsh_path" "$USER"; then
+        ok "zsh теперь оболочка по умолчанию (подействует при следующем входе)"
+    else
+        warn "Не удалось автоматически сменить оболочку"
+        MANUAL_TODO+=("chsh -s $zsh_path")
+    fi
 }
 
 install_terminal() {

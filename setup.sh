@@ -10,8 +10,9 @@
 #
 # Устанавливает: oh-my-zsh (+ плагины zsh-autosuggestions,
 # zsh-syntax-highlighting), oh-my-tmux, git, ssh, zshrc, mc, alacritty, nvim
-# (+ ядро AstroNvim), htop, gitignore_global, pass, gpg;
+# (+ ядро AstroNvim), htop, gitignore_global, pass, gpg, eza;
 # шрифты Hack/0xProto/JetBrainsMono Nerd Font; rust, uv, docker.
+# zsh становится оболочкой по умолчанию (chsh).
 # На Linux дополнительно ставит flatpak + репозиторий flathub, на macOS — Homebrew.
 
 set -euo pipefail
@@ -25,6 +26,7 @@ cmd_install() {
     detect_os
     ensure_prereqs
     install_core_packages
+    set_default_shell_zsh
     install_terminal
     install_rust
     install_uv
