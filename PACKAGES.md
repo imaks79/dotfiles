@@ -23,11 +23,6 @@
 | zsh | zsh | zsh | zsh | zsh | zsh | zsh |
 | pass | pass | pass | pass | pass | pass | pass |
 | gpg | gnupg | gnupg | gnupg2 | gnupg | gpg2 | gnupg |
-| musikcube | musikcube | — | — | — | — | — |
-
-На Linux нативного пакета для musikcube чаще всего нет — если `pkg_native`
-не находит его, ставится пометка "сделать вручную" со ссылкой на
-[GitHub releases/AUR](https://github.com/clangen/musikcube/releases).
 
 ## Терминал
 
@@ -65,8 +60,48 @@ macOS — brew cask; Linux — через [`getnf`](https://github.com/getnf/get
 ## Явно исключено
 
 - **Zed** — убран из установки по запросу.
+- **musikcube** — убран из установки по запросу.
 - **Доп. утилиты** (yazi, chafa, pdftoipe, 7-zip, bat, tree, duf, tldr, termusic) — установка полностью убрана по запросу.
 
-Всё, что не удалось поставить автоматически (например, musikcube без
-подходящего пакета в репозитории дистрибутива), попадает в список
+Всё, что не удалось поставить автоматически, попадает в список
 "сделать вручную", который печатается в конце работы скрипта.
+
+## Как добавить или убрать свой пакет
+
+Вся установка живёт в `lib/packages.sh`, вызовы функций — в `setup.sh` внутри
+`cmd_install()`. Раскладка/сбор конфигов — отдельно, в `lib/deploy.sh`.
+
+**Обычный пакет через системный менеджер** — правь `install_core_packages()`
+или `install_terminal()` в `lib/packages.sh`. Формат вызова:
+
+```bash
+pkg_native <brew> <apt> <dnf> <pacman> <zypper> <apk>
+```
+
+Пустая строка `""` в любой позиции = "в этом менеджере пакета нет, пропустить".
+Чтобы добавить пакет — допиши строку с его именами для каждого менеджера.
+Чтобы убрать — удали строку (или закомментируй `#`).
+
+**Пакет со своим способом установки** (официальный curl-скрипт, cask,
+flatpak и т.п.) — по образцу `install_rust()`, `install_uv()`,
+`install_docker()` в `lib/packages.sh`: своя функция с проверкой
+`command -v <бинарь>` в начале (чтобы не ставить повторно), и вызов этой
+функции из `cmd_install()` в `setup.sh`.
+
+**Клонируемый git-репозиторий** (плагин, тема, чей-то дотфайл-репозиторий) —
+по образцу `install_oh_my_tmux()` / `install_astronvim_core()` /
+`install_alacritty_theme()`: одна строка с `clone_or_update <url> <путь>`
+(она сама решает clone или pull). Не забудь добавить вызов в `cmd_install()`.
+
+**Шрифт** — допиши имя в `install_fonts()`: для brew — в список
+`brew install --cask font-...`, для Linux — в список имён у `getnf -i`.
+
+**Отслеживаемый конфиг-файл** (симлинк из `config/` в систему) — три места
+в `lib/deploy.sh`:
+- `deploy_configs()` — добавить `link_file "$CONFIG_DIR/..." "$HOME/..."`
+- `seed_configs_from_system()` — добавить `sync_from_live "$HOME/..." "$CONFIG_DIR/..."`,
+  чтобы `setup.sh seed` и `update.sh` подхватывали изменения этого файла
+- сам файл положить в `config/<приложение>/...`
+
+После любых правок: `bash -n setup.sh lib/*.sh` — быстрая проверка синтаксиса
+без реального запуска.

@@ -32,14 +32,6 @@ deploy_configs() {
 
     link_file "$CONFIG_DIR/htop/htoprc"            "$HOME/.config/htop/htoprc"
 
-    if [[ -d "$CONFIG_DIR/musikcube" ]]; then
-        local f
-        for f in "$CONFIG_DIR"/musikcube/*.json; do
-            [[ -e "$f" ]] || continue
-            link_file "$f" "$HOME/.config/musikcube/$(basename "$f")"
-        done
-    fi
-
     ok "Конфиги разложены"
 }
 
@@ -58,7 +50,7 @@ sync_from_live() {
 # либо чтобы подтянуть в dotfiles правки, сделанные напрямую в системе.
 seed_configs_from_system() {
     info "Собираю текущие конфиги системы в $CONFIG_DIR"
-    mkdir -p "$CONFIG_DIR"/{zsh,tmux,git,ssh,alacritty,mc,htop,musikcube}
+    mkdir -p "$CONFIG_DIR"/{zsh,tmux,git,ssh,alacritty,mc,htop}
 
     sync_from_live "$HOME/.zshrc"                          "$CONFIG_DIR/zsh/.zshrc"
     sync_from_live "$HOME/.config/tmux/tmux.conf.local"     "$CONFIG_DIR/tmux/tmux.conf.local"
@@ -72,17 +64,6 @@ seed_configs_from_system() {
 
     if [[ -d "$HOME/.config/nvim" ]] && ! [[ "$HOME/.config/nvim" -ef "$CONFIG_DIR/nvim" ]]; then
         rsync -a --exclude '.git' "$HOME/.config/nvim/" "$CONFIG_DIR/nvim/"
-    fi
-
-    if [[ -d "$HOME/.config/musikcube" ]]; then
-        local f base
-        for f in "$HOME"/.config/musikcube/settings.json "$HOME"/.config/musikcube/hotkeys.json \
-                 "$HOME"/.config/musikcube/libraries.json "$HOME"/.config/musikcube/playback.json \
-                 "$HOME"/.config/musikcube/plugin_*.json; do
-            [[ -e "$f" ]] || continue
-            base="$(basename "$f")"
-            sync_from_live "$f" "$CONFIG_DIR/musikcube/$base"
-        done
     fi
 
     if [[ ! -d "$DOTFILES_DIR/.git" ]]; then

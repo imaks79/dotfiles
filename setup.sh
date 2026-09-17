@@ -10,7 +10,7 @@
 #
 # Устанавливает: oh-my-zsh (+ плагины zsh-autosuggestions,
 # zsh-syntax-highlighting), oh-my-tmux, git, ssh, zshrc, mc, alacritty, nvim
-# (+ ядро AstroNvim), htop, gitignore_global, musikcube, pass, gpg;
+# (+ ядро AstroNvim), htop, gitignore_global, pass, gpg;
 # шрифты Hack/0xProto/JetBrainsMono Nerd Font; rust, uv, docker.
 # На Linux дополнительно ставит flatpak + репозиторий flathub, на macOS — Homebrew.
 
@@ -25,7 +25,6 @@ cmd_install() {
     detect_os
     ensure_prereqs
     install_core_packages
-    install_musikcube
     install_terminal
     install_rust
     install_uv

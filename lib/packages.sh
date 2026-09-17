@@ -95,21 +95,6 @@ install_terminal() {
     fi
 }
 
-install_musikcube() {
-    if command -v musikcube >/dev/null 2>&1; then
-        ok "musikcube уже установлен"
-        return 0
-    fi
-    info "Устанавливаю musikcube..."
-    pkg_native musikcube "" "" "" "" ""
-    if command -v musikcube >/dev/null 2>&1; then
-        ok "musikcube установлен"
-    else
-        warn "musikcube автоматически установить не удалось"
-        MANUAL_TODO+=("musikcube -> https://github.com/clangen/musikcube/releases (готовые сборки/AUR musikcube-git)")
-    fi
-}
-
 install_fonts() {
     info "Nerd Fonts: Hack, 0xProto, JetBrainsMono"
     if [[ "$OS" == "macos" ]]; then
