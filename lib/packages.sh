@@ -132,18 +132,8 @@ install_core_packages() {
     pkg_native zsh    zsh        zsh    zsh    zsh    zsh
 }
 
-install_editors_terminals() {
-    info "zed, alacritty"
-    if ! command -v zed >/dev/null 2>&1; then
-        if [[ "$OS" == "macos" ]]; then
-            pkg_cask zed ""
-        else
-            curl -f https://zed.dev/install.sh | sh
-        fi
-    else
-        ok "zed уже установлен"
-    fi
-
+install_terminal() {
+    info "alacritty"
     if ! command -v alacritty >/dev/null 2>&1; then
         if [[ "$OS" == "macos" ]]; then
             pkg_cask alacritty ""
@@ -231,4 +221,55 @@ install_oh_my_tmux() {
 
 install_alacritty_theme() {
     clone_or_update https://github.com/alacritty/alacritty-theme "$HOME/.config/alacritty/themes"
+}
+
+# Ядро AstroNvim заранее кладём в кэш lazy.nvim, чтобы nvim не тянул его
+# из интернета при первом запуске (пользовательский конфиг лежит в config/nvim).
+install_astronvim_core() {
+    clone_or_update https://github.com/AstroNvim/AstroNvim "$HOME/.local/share/nvim/lazy/AstroNvim"
+}
+
+install_rust() {
+    if command -v rustc >/dev/null 2>&1; then
+        ok "rust уже установлен"
+        return 0
+    fi
+    info "Устанавливаю rust (rustup)..."
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile default
+    [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+    command -v rustc >/dev/null 2>&1 && ok "rust установлен" || MANUAL_TODO+=("rust -> https://rustup.rs")
+}
+
+install_uv() {
+    if command -v uv >/dev/null 2>&1; then
+        ok "uv уже установлен"
+        return 0
+    fi
+    info "Устанавливаю uv..."
+    if [[ "$OS" == "macos" ]]; then
+        brew install uv
+    else
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        export PATH="$HOME/.local/bin:$PATH"
+    fi
+    command -v uv >/dev/null 2>&1 && ok "uv установлен" || MANUAL_TODO+=("uv -> https://docs.astral.sh/uv/getting-started/installation/")
+}
+
+install_docker() {
+    if command -v docker >/dev/null 2>&1; then
+        ok "docker уже установлен"
+        return 0
+    fi
+    info "Устанавливаю docker..."
+    if [[ "$OS" == "macos" ]]; then
+        pkg_cask docker ""
+        MANUAL_TODO+=("Docker Desktop поставлен как приложение — запустите его вручную один раз из /Applications")
+    else
+        curl -fsSL https://get.docker.com | sudo sh
+        if command -v docker >/dev/null 2>&1; then
+            sudo usermod -aG docker "$USER" 2>/dev/null || true
+            MANUAL_TODO+=("docker: перелогиньтесь (или выполните 'newgrp docker'), чтобы работать без sudo")
+        fi
+    fi
+    command -v docker >/dev/null 2>&1 || MANUAL_TODO+=("docker -> https://docs.docker.com/engine/install/")
 }

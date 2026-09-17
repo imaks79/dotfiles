@@ -22,7 +22,6 @@ deploy_configs() {
     link_file "$CONFIG_DIR/ssh/config"             "$HOME/.ssh/config"
 
     link_file "$CONFIG_DIR/alacritty/alacritty.toml" "$HOME/.config/alacritty/alacritty.toml"
-    link_file "$CONFIG_DIR/zed/settings.json"      "$HOME/.config/zed/settings.json"
 
     if [[ -d "$CONFIG_DIR/nvim" ]]; then
         link_file "$CONFIG_DIR/nvim"                "$HOME/.config/nvim"
@@ -48,7 +47,7 @@ deploy_configs() {
 # машина и восстанавливать не с чего (запускается вручную через: setup.sh seed)
 seed_configs_from_system() {
     info "Собираю текущие конфиги системы в $CONFIG_DIR"
-    mkdir -p "$CONFIG_DIR"/{zsh,tmux,git,ssh,alacritty,zed,mc,htop,musikcube}
+    mkdir -p "$CONFIG_DIR"/{zsh,tmux,git,ssh,alacritty,mc,htop,musikcube}
 
     [[ -f "$HOME/.zshrc" ]]                          && cp "$HOME/.zshrc" "$CONFIG_DIR/zsh/.zshrc"
     [[ -f "$HOME/.config/tmux/tmux.conf.local" ]]    && cp "$HOME/.config/tmux/tmux.conf.local" "$CONFIG_DIR/tmux/tmux.conf.local"
@@ -56,7 +55,6 @@ seed_configs_from_system() {
     [[ -f "$HOME/.config/git/.gitignore_global" ]]   && cp "$HOME/.config/git/.gitignore_global" "$CONFIG_DIR/git/.gitignore_global"
     [[ -f "$HOME/.ssh/config" ]]                     && cp "$HOME/.ssh/config" "$CONFIG_DIR/ssh/config"
     [[ -f "$HOME/.config/alacritty/alacritty.toml" ]] && cp "$HOME/.config/alacritty/alacritty.toml" "$CONFIG_DIR/alacritty/alacritty.toml"
-    [[ -f "$HOME/.config/zed/settings.json" ]]       && cp "$HOME/.config/zed/settings.json" "$CONFIG_DIR/zed/settings.json"
     [[ -d "$HOME/.config/nvim" ]]                    && rsync -a --exclude '.git' "$HOME/.config/nvim/" "$CONFIG_DIR/nvim/"
     [[ -f "$HOME/.config/mc/ini" ]]                  && cp "$HOME/.config/mc/ini" "$CONFIG_DIR/mc/ini"
     [[ -f "$HOME/.config/mc/panels.ini" ]]           && cp "$HOME/.config/mc/panels.ini" "$CONFIG_DIR/mc/panels.ini"

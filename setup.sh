@@ -8,9 +8,10 @@
 #   ./setup.sh backup [файл]        — упаковать config/ + ~/.ssh в tar.gz
 #   ./setup.sh restore <файл.tar.gz> — восстановить config/ (и, по желанию, ~/.ssh) из архива
 #
-# Устанавливает: oh-my-zsh, oh-my-tmux, git, ssh, zshrc, mc, zed, alacritty,
-# nvim, htop, gitignore_global, musikcube; шрифты Hack/0xProto/JetBrainsMono
-# Nerd Font; утилиты yazi, chafa, pdftoipe, 7-zip, bat, tree, duf, tldr, termusic.
+# Устанавливает: oh-my-zsh, oh-my-tmux, git, ssh, zshrc, mc, alacritty, nvim
+# (+ ядро AstroNvim), htop, gitignore_global, musikcube; шрифты
+# Hack/0xProto/JetBrainsMono Nerd Font; утилиты yazi, chafa, pdftoipe, 7-zip,
+# bat, tree, duf, tldr, termusic; rust, uv, docker.
 # На Linux дополнительно ставит flatpak + репозиторий flathub, на macOS — Homebrew.
 
 set -euo pipefail
@@ -24,11 +25,15 @@ cmd_install() {
     detect_os
     ensure_prereqs
     install_core_packages
-    install_editors_terminals
+    install_terminal
     install_extra_packages
+    install_rust
+    install_uv
+    install_docker
     install_fonts
     install_oh_my_zsh
     install_oh_my_tmux
+    install_astronvim_core
     install_alacritty_theme
 
     offer_restore
