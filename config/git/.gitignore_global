@@ -1,0 +1,17 @@
+# Временные файлы редактора
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Локальные конфиги, которые не надо коммитить
+local.env
+config.local.*
+
