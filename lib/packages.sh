@@ -68,67 +68,6 @@ pkg_cask() {
     return 1
 }
 
-# install <label> -- пробует нативный пакет, потом cargo, потом записывает в MANUAL_TODO
-# usage: install "yazi" native_args... [-- cargo:crate1,crate2] [-- hint:URL]
-try_install() {
-    local label="$1"; shift
-    local -a native_args=() cargo_crates=() hint=""
-    local mode="native"
-    for a in "$@"; do
-        case "$a" in
-            --cargo) mode="cargo" ;;
-            --hint)  mode="hint" ;;
-            *)
-                case "$mode" in
-                    native) native_args+=("$a") ;;
-                    cargo)  cargo_crates+=("$a") ;;
-                    hint)   hint="$a" ;;
-                esac
-                ;;
-        esac
-    done
-
-    if command -v "$label" >/dev/null 2>&1; then
-        ok "$label уже установлен"
-        return 0
-    fi
-
-    info "Устанавливаю $label..."
-    if pkg_native "${native_args[@]}" 2>/dev/null && command -v "$label" >/dev/null 2>&1; then
-        ok "$label установлен (менеджер пакетов)"
-        return 0
-    fi
-    if [[ "$OS" == "macos" ]] && command -v "$label" >/dev/null 2>&1; then
-        ok "$label установлен"
-        return 0
-    fi
-
-    if [[ ${#cargo_crates[@]} -gt 0 ]]; then
-        ensure_build_toolchain
-        if ! command -v cargo >/dev/null 2>&1; then
-            info "cargo не найден, устанавливаю rustup для сборки $label..."
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal >/dev/null 2>&1
-            [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
-        fi
-        if command -v cargo >/dev/null 2>&1; then
-            local cargo_log; cargo_log="$(mktemp)"
-            if cargo install --locked "${cargo_crates[@]}" >"$cargo_log" 2>&1; then
-                ok "$label установлен через cargo"
-                rm -f "$cargo_log"
-                return 0
-            else
-                warn "cargo install ${cargo_crates[*]} не удался, последние строки лога:"
-                tail -n 15 "$cargo_log" | sed 's/^/      /'
-                rm -f "$cargo_log"
-            fi
-        fi
-    fi
-
-    warn "$label автоматически установить не удалось"
-    MANUAL_TODO+=("$label${hint:+ -> $hint}")
-    return 1
-}
-
 install_core_packages() {
     info "Базовые пакеты: git, ssh, mc, htop, nvim, tmux, zsh"
     pkg_native git    git        git    git    git    git
@@ -156,44 +95,19 @@ install_terminal() {
     fi
 }
 
-install_7zip() {
-    if command -v 7zz >/dev/null 2>&1 || command -v 7z >/dev/null 2>&1; then
-        ok "7-zip уже установлен"
+install_musikcube() {
+    if command -v musikcube >/dev/null 2>&1; then
+        ok "musikcube уже установлен"
         return 0
     fi
-    info "Устанавливаю 7-zip..."
-    if [[ "$OS" == "macos" ]]; then
-        brew install sevenzip
+    info "Устанавливаю musikcube..."
+    pkg_native musikcube "" "" "" "" ""
+    if command -v musikcube >/dev/null 2>&1; then
+        ok "musikcube установлен"
     else
-        pkg_native "" p7zip-full p7zip p7zip p7zip p7zip
+        warn "musikcube автоматически установить не удалось"
+        MANUAL_TODO+=("musikcube -> https://github.com/clangen/musikcube/releases (готовые сборки/AUR musikcube-git)")
     fi
-    if command -v 7zz >/dev/null 2>&1 || command -v 7z >/dev/null 2>&1; then
-        ok "7-zip установлен"
-    else
-        warn "7-zip автоматически установить не удалось"
-        MANUAL_TODO+=("7-zip -> https://7-zip.org/download.html")
-    fi
-}
-
-install_extra_packages() {
-    info "Дополнительные утилиты"
-    #                brew      apt    dnf    pacman    zypper apk
-    try_install yazi     yazi     ""    yazi   yazi      ""    yazi   --cargo yazi-fm yazi-cli --hint "https://yazi-rs.github.io/docs/installation"
-    try_install chafa    chafa    chafa chafa  chafa     chafa chafa
-    try_install pdftoipe pdftoipe pdftoipe ""  ""        ""    ""     --hint "https://www.ctan.org/pkg/pdftoipe (сборка из исходников)"
-    install_7zip
-    try_install bat      bat      bat   bat    bat       bat   bat
-    # На Debian/Ubuntu пакет bat ставит бинарь как batcat (конфликт имён)
-    if ! command -v bat >/dev/null 2>&1 && command -v batcat >/dev/null 2>&1; then
-        mkdir -p "$HOME/.local/bin"
-        ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
-        ok "bat -> симлинк на batcat в ~/.local/bin"
-    fi
-    try_install tree     tree     tree  tree   tree      tree  tree
-    try_install duf      duf      duf   duf    duf       duf   duf    --cargo duf
-    try_install tldr     tldr     tldr  tldr   tealdeer  tldr  tldr   --cargo tealdeer --hint "после cargo install tealdeer выполните: tldr --update"
-    try_install termusic termusic ""    ""     ""        ""    ""     --cargo termusic termusic-server --hint "https://github.com/tsblan91/termusic"
-    try_install musikcube musikcube ""  ""     ""        ""    ""     --hint "https://github.com/clangen/musikcube/releases (готовые сборки/AUR musikcube-git)"
 }
 
 install_fonts() {

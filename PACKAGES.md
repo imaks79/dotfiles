@@ -23,6 +23,11 @@
 | zsh | zsh | zsh | zsh | zsh | zsh | zsh |
 | pass | pass | pass | pass | pass | pass | pass |
 | gpg | gnupg | gnupg | gnupg2 | gnupg | gpg2 | gnupg |
+| musikcube | musikcube | — | — | — | — | — |
+
+На Linux нативного пакета для musikcube чаще всего нет — если `pkg_native`
+не находит его, ставится пометка "сделать вручную" со ссылкой на
+[GitHub releases/AUR](https://github.com/clangen/musikcube/releases).
 
 ## Терминал
 
@@ -37,27 +42,6 @@
 | rust | `rustup` (официальный установщик, обе ОС); перед сборкой на Linux ставится тулчейн — компилятор, `pkg-config`, заголовки openssl |
 | uv | brew (macOS) / официальный скрипт `astral.sh/uv/install.sh` (Linux) |
 | docker | brew cask "Docker" — Docker Desktop (macOS) / `get.docker.com` — Docker Engine + добавление пользователя в группу `docker` (Linux) |
-
-## Дополнительные утилиты
-
-Проверяются через `command -v`, ставятся нативным пакетным менеджером,
-при неудаче — фоллбэк на `cargo install`, если он есть.
-
-| Пакет | brew | apt | dnf | pacman | zypper | apk | cargo-фоллбэк |
-|---|---|---|---|---|---|---|---|
-| yazi | yazi | — | yazi | yazi | — | yazi | yazi-fm, yazi-cli |
-| chafa | chafa | chafa | chafa | chafa | chafa | chafa | — |
-| pdftoipe | pdftoipe | pdftoipe | — | — | — | — | — (нужна сборка вручную) |
-| 7-zip | sevenzip (`7zz`) | p7zip-full (`7z`) | p7zip | p7zip | p7zip | p7zip | — |
-| bat | bat | bat | bat | bat | bat | bat | — (на Debian/Ubuntu симлинк `batcat` → `bat`) |
-| tree | tree | tree | tree | tree | tree | tree | — |
-| duf | duf | duf | duf | duf | duf | duf | duf |
-| tldr | tldr | tldr | tldr | tealdeer | tldr | tldr | tealdeer |
-| termusic | termusic | — | — | — | — | — | termusic, termusic-server |
-| musikcube | musikcube | — | — | — | — | — | — (см. GitHub releases/AUR) |
-
-То, что не удалось поставить ни одним из способов, попадает в список
-"сделать вручную", который печатается в конце работы скрипта.
 
 ## Шрифты (Nerd Fonts)
 
@@ -81,3 +65,8 @@ macOS — brew cask; Linux — через [`getnf`](https://github.com/getnf/get
 ## Явно исключено
 
 - **Zed** — убран из установки по запросу.
+- **Доп. утилиты** (yazi, chafa, pdftoipe, 7-zip, bat, tree, duf, tldr, termusic) — установка полностью убрана по запросу.
+
+Всё, что не удалось поставить автоматически (например, musikcube без
+подходящего пакета в репозитории дистрибутива), попадает в список
+"сделать вручную", который печатается в конце работы скрипта.

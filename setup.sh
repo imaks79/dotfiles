@@ -10,9 +10,8 @@
 #
 # Устанавливает: oh-my-zsh (+ плагины zsh-autosuggestions,
 # zsh-syntax-highlighting), oh-my-tmux, git, ssh, zshrc, mc, alacritty, nvim
-# (+ ядро AstroNvim), htop, gitignore_global, musikcube, pass, gpg; шрифты
-# Hack/0xProto/JetBrainsMono Nerd Font; утилиты yazi, chafa, pdftoipe, 7-zip,
-# bat, tree, duf, tldr, termusic; rust, uv, docker.
+# (+ ядро AstroNvim), htop, gitignore_global, musikcube, pass, gpg;
+# шрифты Hack/0xProto/JetBrainsMono Nerd Font; rust, uv, docker.
 # На Linux дополнительно ставит flatpak + репозиторий flathub, на macOS — Homebrew.
 
 set -euo pipefail
@@ -26,9 +25,9 @@ cmd_install() {
     detect_os
     ensure_prereqs
     install_core_packages
+    install_musikcube
     install_terminal
     install_rust
-    install_extra_packages
     install_uv
     install_docker
     install_fonts
