@@ -10,6 +10,18 @@ err()   { printf '%s[x]%s %s\n' "$C_RED"    "$C_RESET" "$*" >&2; }
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MANUAL_TODO=()
+FAILED_STEPS=()
+
+# Запускает один шаг установки так, чтобы его провал (недостающий пакет,
+# скрипт-установщик отказался ставиться и т.п.) не обрывал set -e весь
+# остальной setup.sh — сообщаем и идём дальше.
+step() {
+    local name="$1"; shift
+    if ! "$@"; then
+        warn "Шаг '$name' завершился с ошибкой, продолжаю дальше"
+        FAILED_STEPS+=("$name")
+    fi
+}
 
 detect_os() {
     case "$(uname -s)" in

@@ -28,26 +28,30 @@ source "$SCRIPT_DIR/lib/skel.sh"
 
 cmd_install() {
     detect_os
-    ensure_prereqs
-    install_core_packages
-    set_default_shell_zsh
-    install_terminal
-    install_rust
-    install_uv
-    install_docker
-    install_fonts
-    install_oh_my_zsh
-    install_oh_my_zsh_plugins
-    install_oh_my_tmux
-    install_astronvim_core
-    install_alacritty_theme
+    step "ensure_prereqs"          ensure_prereqs
+    step "install_core_packages"   install_core_packages
+    step "set_default_shell_zsh"   set_default_shell_zsh
+    step "install_terminal"        install_terminal
+    step "install_rust"            install_rust
+    step "install_uv"              install_uv
+    step "install_docker"          install_docker
+    step "install_fonts"           install_fonts
+    step "install_oh_my_zsh"       install_oh_my_zsh
+    step "install_oh_my_zsh_plugins" install_oh_my_zsh_plugins
+    step "install_oh_my_tmux"      install_oh_my_tmux
+    step "install_astronvim_core"  install_astronvim_core
+    step "install_alacritty_theme" install_alacritty_theme
 
     offer_restore
     deploy_configs
-    install_skel
+    step "install_skel"            install_skel
 
     echo
     ok "Готово."
+    if [[ ${#FAILED_STEPS[@]} -gt 0 ]]; then
+        warn "Эти шаги упали с ошибкой (см. вывод выше), остальное всё равно доставилось:"
+        printf '    - %s\n' "${FAILED_STEPS[@]}"
+    fi
     if [[ ${#MANUAL_TODO[@]} -gt 0 ]]; then
         warn "Не удалось поставить автоматически, сделайте вручную:"
         local item
