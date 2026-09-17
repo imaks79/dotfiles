@@ -26,8 +26,8 @@ cmd_install() {
     ensure_prereqs
     install_core_packages
     install_terminal
-    install_extra_packages
     install_rust
+    install_extra_packages
     install_uv
     install_docker
     install_fonts

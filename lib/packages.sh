@@ -104,14 +104,23 @@ try_install() {
     fi
 
     if [[ ${#cargo_crates[@]} -gt 0 ]]; then
+        ensure_build_toolchain
         if ! command -v cargo >/dev/null 2>&1; then
             info "cargo не найден, устанавливаю rustup для сборки $label..."
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal >/dev/null 2>&1
             [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
         fi
-        if command -v cargo >/dev/null 2>&1 && cargo install --locked "${cargo_crates[@]}" 2>/dev/null; then
-            ok "$label установлен через cargo"
-            return 0
+        if command -v cargo >/dev/null 2>&1; then
+            local cargo_log; cargo_log="$(mktemp)"
+            if cargo install --locked "${cargo_crates[@]}" >"$cargo_log" 2>&1; then
+                ok "$label установлен через cargo"
+                rm -f "$cargo_log"
+                return 0
+            else
+                warn "cargo install ${cargo_crates[*]} не удался, последние строки лога:"
+                tail -n 15 "$cargo_log" | sed 's/^/      /'
+                rm -f "$cargo_log"
+            fi
         fi
     fi
 
@@ -229,12 +238,32 @@ install_astronvim_core() {
     clone_or_update https://github.com/AstroNvim/AstroNvim "$HOME/.local/share/nvim/lazy/AstroNvim"
 }
 
+# cargo/rustup не может собирать пакеты без компилятора и линковщика (cc) —
+# на минимальных установках (Parrot OS, серверные образы и т.п.) их обычно нет.
+BUILD_TOOLCHAIN_READY=0
+ensure_build_toolchain() {
+    [[ "$BUILD_TOOLCHAIN_READY" == "1" ]] && return 0
+    [[ "$OS" == "macos" ]] && { BUILD_TOOLCHAIN_READY=1; return 0; }
+    command -v cc >/dev/null 2>&1 && command -v pkg-config >/dev/null 2>&1 && { BUILD_TOOLCHAIN_READY=1; return 0; }
+
+    info "Ставлю инструменты сборки (компилятор, pkg-config, заголовки openssl)..."
+    case "$PKG_MANAGER" in
+        apt)    sudo apt-get install -y build-essential pkg-config libssl-dev ;;
+        dnf)    sudo dnf groupinstall -y "Development Tools"; sudo dnf install -y pkg-config openssl-devel ;;
+        pacman) sudo pacman -S --noconfirm --needed base-devel openssl ;;
+        zypper) sudo zypper --non-interactive install -t pattern devel_basis; sudo zypper --non-interactive install pkg-config libopenssl-devel ;;
+        apk)    sudo apk add build-base pkgconfig openssl-dev ;;
+    esac
+    BUILD_TOOLCHAIN_READY=1
+}
+
 install_rust() {
     if command -v rustc >/dev/null 2>&1; then
         ok "rust уже установлен"
         return 0
     fi
     info "Устанавливаю rust (rustup)..."
+    ensure_build_toolchain
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile default
     [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
     command -v rustc >/dev/null 2>&1 && ok "rust установлен" || MANUAL_TODO+=("rust -> https://rustup.rs")
