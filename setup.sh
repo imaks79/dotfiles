@@ -13,6 +13,9 @@
 # (+ ядро AstroNvim), htop, gitignore_global, pass, gpg, eza;
 # шрифты Hack/0xProto/JetBrainsMono Nerd Font; rust, uv, docker.
 # zsh становится оболочкой по умолчанию (chsh).
+# Публикует dotfiles в /usr/local/share/dotfiles и раскладывает симлинки в
+# /etc/skel (Linux) — новые пользователи получают эти конфиги при создании;
+# на macOS это штатно недоступно (SIP), см. new-user.sh.
 # На Linux дополнительно ставит flatpak + репозиторий flathub, на macOS — Homebrew.
 
 set -euo pipefail
@@ -21,6 +24,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/common.sh"
 source "$SCRIPT_DIR/lib/packages.sh"
 source "$SCRIPT_DIR/lib/deploy.sh"
+source "$SCRIPT_DIR/lib/skel.sh"
 
 cmd_install() {
     detect_os
@@ -40,6 +44,7 @@ cmd_install() {
 
     offer_restore
     deploy_configs
+    install_skel
 
     echo
     ok "Готово."

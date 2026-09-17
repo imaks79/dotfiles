@@ -63,6 +63,32 @@ macOS — brew cask; Linux — через [`getnf`](https://github.com/getnf/get
 | AstroNvim (ядро) | `~/.local/share/nvim/lazy/AstroNvim` |
 | alacritty-theme | `~/.config/alacritty/themes` |
 
+## Новые пользователи системы
+
+`setup.sh` также настраивает автоматическую раздачу этих же конфигов
+пользователям, которых создадут после этого на этой машине:
+
+1. `sync_shared_dotfiles()` (`lib/skel.sh`) публикует `config/` в
+   `/usr/local/share/dotfiles` — общедоступную для чтения копию. `setup.sh` и
+   `update.sh` обновляют её каждый раз сами.
+2. **Linux**: `install_skel_linux()` раскладывает в `/etc/skel` символические
+   ссылки на файлы из этой общей копии. Всё, что создаётся дальше через
+   `useradd -m`, получает те же конфиги.
+3. **macOS**: `/System/Library/User Template` на современных версиях
+   недоступен для записи даже под root (System Integrity Protection +
+   запечатанный системный том) — `install_skel_macos()` честно проверяет это
+   и, если не вышло, добавляет напоминание запускать `new-user.sh` вручную.
+4. oh-my-zsh, oh-my-tmux, ядро AstroNvim и тема alacritty — git-клоны в
+   `$HOME`, которых у только что созданного пользователя ещё нет. За это
+   отвечает `lib/first-login.sh`: хук в самом верху `config/zsh/.zshrc`
+   запускает его при первом входе (один раз, помечает себя маркером в
+   `~/.cache/.dotfiles-bootstrapped`), он доклонирует зависимости и
+   перекладывает симлинки, которые skel не мог создать заранее (например
+   `tmux.conf`, ссылающийся на ещё не склонированный `oh-my-tmux`).
+5. `./new-user.sh <имя>` — то же самое для уже существующего пользователя
+   (создан до настройки `/etc/skel`, либо это macOS, где шаг 3 не сработал).
+   Запускается от root: `sudo ./new-user.sh <имя>`.
+
 ## Явно исключено
 
 - **Zed** — убран из установки по запросу.

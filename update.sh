@@ -18,6 +18,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/common.sh"
 source "$SCRIPT_DIR/lib/deploy.sh"
+source "$SCRIPT_DIR/lib/skel.sh"
 
 DO_PUSH=0
 DO_BACKUP=1
@@ -38,6 +39,10 @@ fi
 
 seed_configs_from_system
 deploy_configs
+
+if [[ -d "$SHARED_DOTS_DIR" ]]; then
+    sync_shared_dotfiles
+fi
 
 cd "$DOTFILES_DIR"
 if git diff --quiet && git diff --cached --quiet && [[ -z "$(git status --porcelain)" ]]; then
