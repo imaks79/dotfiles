@@ -7,16 +7,6 @@
 #         Copyright 2012— Gregory Pakosz (@gpakosz).
 
 
-# -- shell ----------------------------------------------------------------------
-
-# tmux по умолчанию открывает панели в shell пользователя из /etc/passwd —
-# если chsh не применился (или ещё не подхватился в текущей сессии), панели
-# открываются в bash, и там нет ни алиасов, ни плагинов из .zshrc.
-# Явно указываем zsh, находя его путь на месте, а не хардкодя в конфиге
-# (путь к zsh отличается между машинами: /bin/zsh, /usr/bin/zsh, /opt/homebrew/bin/zsh).
-if-shell "command -v zsh" "run-shell 'tmux set-option -g default-shell \"$(command -v zsh)\"'"
-
-
 # -- bindings ------------------------------------------------------------------
 
 # preserve tmux stock bindings,
