@@ -1,19 +1,6 @@
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
-# Первый вход нового пользователя (конфиги пришли из /etc/skel или User
-# Template): oh-my-zsh/oh-my-tmux/AstroNvim/тема alacritty ещё не
-# склонированы в $HOME — доклонировать их можно только сейчас, руками
-# useradd этого не делает. Срабатывает один раз, помечает себя маркером.
-if [[ ! -f "$HOME/.cache/.dotfiles-bootstrapped" ]]; then
-	mkdir -p "$HOME/.cache"
-	touch "$HOME/.cache/.dotfiles-bootstrapped"
-	if [[ -x /usr/local/share/dotfiles/lib/first-login.sh ]]; then
-		bash /usr/local/share/dotfiles/lib/first-login.sh
-		exec zsh
-	fi
-fi
-
 # Path to your Oh My Zsh installation.
 export ZSH="$HOME/.config/.oh-my-zsh"
 
