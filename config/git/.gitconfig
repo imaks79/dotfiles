@@ -1,3 +1,6 @@
+[user]
+	email = imaks9990@gmail.com
+	name = imaks79
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
