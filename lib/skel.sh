@@ -12,10 +12,10 @@ SKEL_DIR="${SKEL_DIR:-/etc/skel}"
 # делают это сами).
 sync_shared_dotfiles() {
     info "Публикую dotfiles для новых пользователей в $SHARED_DOTS_DIR"
-    sudo mkdir -p "$SHARED_DOTS_DIR"
-    sudo rsync -a --delete --exclude '.git' --exclude 'config/*/*.bak-*' \
+    $SUDO mkdir -p "$SHARED_DOTS_DIR"
+    $SUDO rsync -a --delete --exclude '.git' --exclude 'config/*/*.bak-*' \
         "$DOTFILES_DIR/" "$SHARED_DOTS_DIR/"
-    sudo chmod -R a+rX "$SHARED_DOTS_DIR"
+    $SUDO chmod -R a+rX "$SHARED_DOTS_DIR"
     ok "Общая копия обновлена: $SHARED_DOTS_DIR"
 }
 
@@ -45,15 +45,15 @@ skel_link_into() {
     local base="$1" rel cfg
     while IFS='|' read -r rel cfg; do
         [[ -n "$rel" ]] || continue
-        sudo mkdir -p "$base/$(dirname "$rel")"
-        sudo ln -sfn "$SHARED_DOTS_DIR/config/$cfg" "$base/$rel"
+        $SUDO mkdir -p "$base/$(dirname "$rel")"
+        $SUDO ln -sfn "$SHARED_DOTS_DIR/config/$cfg" "$base/$rel"
     done < <(skel_link_map)
 }
 
 install_skel_linux() {
     sync_shared_dotfiles
     info "Раскладываю симлинки в $SKEL_DIR"
-    sudo mkdir -p "$SKEL_DIR"
+    $SUDO mkdir -p "$SKEL_DIR"
     skel_link_into "$SKEL_DIR"
     ok "$SKEL_DIR настроен — новые пользователи, созданные через 'useradd -m', получат эти конфиги"
     info "Создавайте пользователей с zsh: sudo useradd -m -s \$(command -v zsh) <имя>"
@@ -70,8 +70,8 @@ install_skel_macos() {
     local template="/System/Library/User Template/Non_localized"
     # -w как текущий пользователь ничего не доказывает (мы и так не root
     # здесь) — пробуем реальную запись под sudo, это и есть настоящий тест.
-    if sudo mkdir -p "$template/.dotfiles-write-test" 2>/dev/null; then
-        sudo rmdir "$template/.dotfiles-write-test" 2>/dev/null || true
+    if $SUDO mkdir -p "$template/.dotfiles-write-test" 2>/dev/null; then
+        $SUDO rmdir "$template/.dotfiles-write-test" 2>/dev/null || true
         info "Раскладываю симлинки в $template"
         skel_link_into "$template"
         ok "User Template настроен"

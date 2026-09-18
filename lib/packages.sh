@@ -13,17 +13,29 @@ ensure_prereqs() {
         ok "Homebrew готов: $(brew --version | head -1)"
     else
         case "$PKG_MANAGER" in
-            apt)    sudo apt-get update -y ;;
-            zypper) sudo zypper --non-interactive refresh ;;
+            apt)    $SUDO apt-get update -y ;;
+            zypper) $SUDO zypper --non-interactive refresh ;;
+        esac
+        # curl/git/ca-certificates/rsync нужны почти всем шагам ниже
+        # (клонирование репозиториев, скачивание установщиков, публикация
+        # /etc/skel) — на минимальных образах (например, "docker run ubuntu")
+        # их по умолчанию нет вообще.
+        info "Базовые зависимости: curl, git, ca-certificates, rsync"
+        case "$PKG_MANAGER" in
+            apt)    $SUDO apt-get install -y curl git ca-certificates rsync ;;
+            dnf)    $SUDO dnf install -y curl git ca-certificates rsync ;;
+            pacman) $SUDO pacman -S --noconfirm --needed curl git ca-certificates rsync ;;
+            zypper) $SUDO zypper --non-interactive install curl git ca-certificates rsync ;;
+            apk)    $SUDO apk add curl git ca-certificates rsync ;;
         esac
         if ! command -v flatpak >/dev/null 2>&1; then
             info "Устанавливаю flatpak..."
             case "$PKG_MANAGER" in
-                apt)    sudo apt-get install -y flatpak ;;
-                dnf)    sudo dnf install -y flatpak ;;
-                pacman) sudo pacman -S --noconfirm flatpak ;;
-                zypper) sudo zypper --non-interactive install flatpak ;;
-                apk)    sudo apk add flatpak ;;
+                apt)    $SUDO apt-get install -y flatpak ;;
+                dnf)    $SUDO dnf install -y flatpak ;;
+                pacman) $SUDO pacman -S --noconfirm flatpak ;;
+                zypper) $SUDO zypper --non-interactive install flatpak ;;
+                apk)    $SUDO apk add flatpak ;;
             esac
         fi
         if command -v flatpak >/dev/null 2>&1; then
@@ -45,11 +57,11 @@ pkg_native() {
         return $?
     fi
     case "$PKG_MANAGER" in
-        apt)    [[ -n "$apt_name" ]]    && sudo apt-get install -y "$apt_name" ;;
-        dnf)    [[ -n "$dnf_name" ]]    && sudo dnf install -y "$dnf_name" ;;
-        pacman) [[ -n "$pacman_name" ]] && sudo pacman -S --noconfirm --needed "$pacman_name" ;;
-        zypper) [[ -n "$zypper_name" ]] && sudo zypper --non-interactive install "$zypper_name" ;;
-        apk)    [[ -n "$apk_name" ]]    && sudo apk add "$apk_name" ;;
+        apt)    [[ -n "$apt_name" ]]    && $SUDO apt-get install -y "$apt_name" ;;
+        dnf)    [[ -n "$dnf_name" ]]    && $SUDO dnf install -y "$dnf_name" ;;
+        pacman) [[ -n "$pacman_name" ]] && $SUDO pacman -S --noconfirm --needed "$pacman_name" ;;
+        zypper) [[ -n "$zypper_name" ]] && $SUDO zypper --non-interactive install "$zypper_name" ;;
+        apk)    [[ -n "$apk_name" ]]    && $SUDO apk add "$apk_name" ;;
         *) return 1 ;;
     esac
 }
@@ -114,7 +126,7 @@ set_default_shell_zsh() {
 
     if ! grep -qxF "$zsh_path" /etc/shells 2>/dev/null; then
         info "Добавляю $zsh_path в /etc/shells"
-        echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
+        echo "$zsh_path" | $SUDO tee -a /etc/shells >/dev/null
     fi
 
     info "Делаю zsh ($zsh_path) оболочкой по умолчанию для $USER"
@@ -212,11 +224,11 @@ ensure_build_toolchain() {
 
     info "Ставлю инструменты сборки (компилятор, pkg-config, заголовки openssl)..."
     case "$PKG_MANAGER" in
-        apt)    sudo apt-get install -y build-essential pkg-config libssl-dev ;;
-        dnf)    sudo dnf groupinstall -y "Development Tools"; sudo dnf install -y pkg-config openssl-devel ;;
-        pacman) sudo pacman -S --noconfirm --needed base-devel openssl ;;
-        zypper) sudo zypper --non-interactive install -t pattern devel_basis; sudo zypper --non-interactive install pkg-config libopenssl-devel ;;
-        apk)    sudo apk add build-base pkgconfig openssl-dev ;;
+        apt)    $SUDO apt-get install -y build-essential pkg-config libssl-dev ;;
+        dnf)    $SUDO dnf groupinstall -y "Development Tools"; $SUDO dnf install -y pkg-config openssl-devel ;;
+        pacman) $SUDO pacman -S --noconfirm --needed base-devel openssl ;;
+        zypper) $SUDO zypper --non-interactive install -t pattern devel_basis; $SUDO zypper --non-interactive install pkg-config libopenssl-devel ;;
+        apk)    $SUDO apk add build-base pkgconfig openssl-dev ;;
     esac
     BUILD_TOOLCHAIN_READY=1
 }
@@ -258,9 +270,9 @@ install_docker() {
         pkg_cask docker ""
         MANUAL_TODO+=("Docker Desktop поставлен как приложение — запустите его вручную один раз из /Applications")
     else
-        curl -fsSL https://get.docker.com | sudo sh
+        curl -fsSL https://get.docker.com | $SUDO sh
         if command -v docker >/dev/null 2>&1; then
-            sudo usermod -aG docker "$USER" 2>/dev/null || true
+            $SUDO usermod -aG docker "${USER:-$(id -un)}" 2>/dev/null || true
             MANUAL_TODO+=("docker: перелогиньтесь (или выполните 'newgrp docker'), чтобы работать без sudo")
         fi
     fi
