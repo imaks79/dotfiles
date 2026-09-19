@@ -37,6 +37,8 @@ Releases). `cargo` должен быть уже установлен — его 
 | **pdftoipe** | Конвертация PDF в XML для редактора Ipe | нет; есть только в brew и apt, на dnf/pacman/zypper/apk ставьте из исходников |
 | **7zip** | Архиватор 7-Zip | — (есть везде под разными именами: `sevenzip`/`p7zip-full`/`7zip`/`p7zip`) |
 | **slumber** | Терминальный REST/gRPC-клиент (TUI-замена Postman/Insomnia) | `cargo install slumber` |
+| **[mangofetch](https://github.com/julesklord/mangofetch)** | TUI-загрузчик медиа (YouTube, torrent, SoundCloud, Instagram) — оборачивает `yt-dlp`/`ffmpeg`, сам докачивает недостающие бинари | `cargo install mangofetch` (нет ни в одном пакетном менеджере — новый проект) |
+| **[gonzo](https://github.com/control-theory/gonzo)** | TUI для анализа логов в реальном времени в стиле k9s: графики, Kubernetes/OTLP из коробки, AI-инсайты | нативного пакета нет нигде на Linux — бинарь с GitHub Releases с проверкой sha256 (на macOS есть в brew) |
 
 ## Требует системных библиотек для сборки из исходников
 

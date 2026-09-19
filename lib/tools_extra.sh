@@ -139,6 +139,22 @@ install_lazygit() {
     install_gh_release_tar "jesseduffield/lazygit" "lazygit" "lazygit_${tag}_linux_${arch}.tar.gz" "checksums.txt"
 }
 
+install_gonzo() {
+    command -v gonzo >/dev/null 2>&1 && { ok "gonzo уже установлен"; return 0; }
+    if pkg_native gonzo "" "" "" "" "" && command -v gonzo >/dev/null 2>&1; then
+        ok "gonzo установлен"; return 0
+    fi
+    [[ "$OS" == "linux" ]] || { MANUAL_TODO+=("gonzo -> https://github.com/control-theory/gonzo#installation"); return 1; }
+    local arch; case "$(uname -m)" in
+        x86_64|amd64) arch=amd64 ;;
+        aarch64|arm64) arch=arm64 ;;
+        *) MANUAL_TODO+=("gonzo -> https://github.com/control-theory/gonzo/releases"); return 1 ;;
+    esac
+    local tag; tag="$(curl -fsSL https://api.github.com/repos/control-theory/gonzo/releases/latest 2>/dev/null | sed -n 's/.*"tag_name": *"v\{0,1\}\([^"]*\)".*/\1/p' | head -1)"
+    [[ -n "$tag" ]] || { MANUAL_TODO+=("gonzo -> https://github.com/control-theory/gonzo/releases"); return 1; }
+    install_gh_release_tar "control-theory/gonzo" "gonzo" "gonzo-${tag}-linux-${arch}.tar.gz" "checksums.txt"
+}
+
 install_lazydocker() {
     command -v lazydocker >/dev/null 2>&1 && { ok "lazydocker уже установлен"; return 0; }
     if pkg_native lazydocker "" "" lazydocker "" lazydocker && command -v lazydocker >/dev/null 2>&1; then
@@ -197,7 +213,7 @@ install_fastfetch() {
     install_gh_release_deb "fastfetch-cli/fastfetch" "fastfetch" "fastfetch-linux-${arch}.deb"
 }
 
-TOOLS_EXTRA_NAMES=(tldr duf gpg-tui termusic vortix wlctl lazygit lazydocker k9s termscp lnav dust yazi fastfetch bottom gping trippy bandwhich bat chafa pdftoipe 7zip slumber)
+TOOLS_EXTRA_NAMES=(tldr duf gpg-tui termusic vortix wlctl lazygit lazydocker k9s termscp lnav dust yazi fastfetch bottom gping trippy bandwhich bat chafa pdftoipe 7zip slumber mangofetch gonzo)
 
 tool_desc() {
     case "$1" in
@@ -224,6 +240,8 @@ tool_desc() {
         pdftoipe) echo "Конвертация PDF в XML для редактора Ipe" ;;
         7zip)     echo "Архиватор 7-Zip" ;;
         slumber)  echo "Терминальный REST/gRPC-клиент (замена Postman/Insomnia в TUI)" ;;
+        mangofetch) echo "TUI-загрузчик медиа (YouTube, torrent, SoundCloud, Instagram) поверх yt-dlp/ffmpeg" ;;
+        gonzo)    echo "TUI для анализа логов в реальном времени (k9s-стиль), нативная поддержка Kubernetes и OTLP" ;;
         *) return 1 ;;
     esac
 }
@@ -262,6 +280,8 @@ install_tool() {
         pdftoipe)  pkg_or_cargo pdftoipe ""      pdftoipe pdftoipe "" "" "" "" ;;
         7zip)      install_7zip ;;
         slumber)   pkg_or_cargo slumber  slumber slumber "" "" slumber "" "" ;;
+        mangofetch) pkg_or_cargo mangofetch mangofetch "" "" "" "" "" "" ;;
+        gonzo)     install_gonzo ;;
         *) err "Неизвестный инструмент: $name"; return 1 ;;
     esac
 }
