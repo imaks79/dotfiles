@@ -93,6 +93,7 @@ install_core_packages() {
     pkg_native pass   pass       pass   pass   pass   pass
     pkg_native gnupg  gnupg      gnupg2 gnupg  gpg2   gnupg
     pkg_native eza    eza        eza    eza    eza    eza
+    pkg_native wireguard-tools wireguard-tools wireguard-tools wireguard-tools wireguard-tools wireguard-tools
 }
 
 # Делает zsh логин-шеллом пользователя по умолчанию (chsh).
@@ -270,9 +271,32 @@ install_docker() {
         pkg_cask docker ""
         MANUAL_TODO+=("Docker Desktop поставлен как приложение — запустите его вручную один раз из /Applications")
     else
-        curl -fsSL https://get.docker.com | $SUDO sh
+        # get.docker.com умеет только apt/dnf-семьи (Ubuntu/Debian/Fedora/CentOS/RHEL) —
+        # на Arch/openSUSE/Alpine скрипт падает с "Unsupported distribution", там
+        # ставим нативными пакетами. docker-compose-plugin и docker-buildx-plugin
+        # (или их аналоги) добавлены явно, иначе `docker compose`/`docker buildx`
+        # не работают "из коробки" после установки.
+        case "$PKG_MANAGER" in
+            apt|dnf)
+                curl -fsSL https://get.docker.com | $SUDO sh
+                ;;
+            pacman)
+                $SUDO pacman -S --noconfirm --needed docker docker-compose docker-buildx
+                ;;
+            zypper)
+                $SUDO zypper --non-interactive install docker docker-compose docker-buildx
+                ;;
+            apk)
+                $SUDO apk add docker docker-cli-compose docker-cli-buildx
+                ;;
+        esac
         if command -v docker >/dev/null 2>&1; then
             $SUDO usermod -aG docker "${USER:-$(id -un)}" 2>/dev/null || true
+            case "$PKG_MANAGER" in
+                pacman|zypper) $SUDO systemctl enable --now docker 2>/dev/null || true ;;
+                apk)            $SUDO rc-update add docker default 2>/dev/null || true
+                                 $SUDO service docker start 2>/dev/null || true ;;
+            esac
             MANUAL_TODO+=("docker: перелогиньтесь (или выполните 'newgrp docker'), чтобы работать без sudo")
         fi
     fi

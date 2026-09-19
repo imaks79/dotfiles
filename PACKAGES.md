@@ -24,6 +24,7 @@
 | pass | pass | pass | pass | pass | pass | pass |
 | gpg | gnupg | gnupg | gnupg2 | gnupg | gpg2 | gnupg |
 | eza | eza | eza | eza | eza | eza | eza |
+| wireguard-tools | wireguard-tools | wireguard-tools | wireguard-tools | wireguard-tools | wireguard-tools | wireguard-tools |
 
 После установки zsh скрипт также делает его оболочкой по умолчанию
 (`chsh`, функция `set_default_shell_zsh()`) — путь к бинарю при необходимости
@@ -42,7 +43,16 @@
 |---|---|
 | rust | `rustup` (официальный установщик, обе ОС); перед сборкой на Linux ставится тулчейн — компилятор, `pkg-config`, заголовки openssl |
 | uv | brew (macOS) / официальный скрипт `astral.sh/uv/install.sh` (Linux) |
-| docker | brew cask "Docker" — Docker Desktop (macOS) / `get.docker.com` — Docker Engine + добавление пользователя в группу `docker` (Linux) |
+| docker | brew cask "Docker" — Docker Desktop (macOS) / `get.docker.com` (apt, dnf) или нативные пакеты `docker docker-compose docker-buildx` (pacman, zypper; на apk — `docker docker-cli-compose docker-cli-buildx`) + добавление пользователя в группу `docker` (Linux) |
+
+`get.docker.com` поддерживает только apt/dnf-семьи (Ubuntu/Debian/Fedora/
+CentOS/RHEL) — на Arch/openSUSE/Alpine он завершается с ошибкой "Unsupported
+distribution", поэтому там ставим нативными пакетами дистрибутива. Во всех
+случаях вместе с движком ставятся `docker compose` и `docker buildx` (как
+плагины) — без них "из коробки" работали бы только `docker build`/`docker
+run`, а `docker-compose.yml` и мультиarch-сборки требовали бы доустановки
+руками. Проверено `docker compose version` / `docker buildx version` в
+контейнерах ubuntu/archlinux/opensuse-tumbleweed/alpine.
 
 ## Шрифты (Nerd Fonts)
 
@@ -93,7 +103,18 @@ macOS — brew cask; Linux — через [`getnf`](https://github.com/getnf/get
 
 - **Zed** — убран из установки по запросу.
 - **musikcube** — убран из установки по запросу.
-- **Доп. утилиты** (yazi, chafa, pdftoipe, 7-zip, bat, tree, duf, tldr, termusic) — установка полностью убрана по запросу.
+
+## Дополнительные инструменты — отдельными скриптами
+
+В `setup.sh` попадает только базовый набор (таблицы выше). Две группы
+TUI/CLI-инструментов ставятся отдельными скриптами, чтобы не грузить
+основную установку тем, что нужно не всем:
+
+- **`./tools-extra.sh`** — yazi, bat, duf, tldr, termusic, lazygit, k9s и
+  ещё 16 инструментов. См. [TOOLS-EXTRA.md](TOOLS-EXTRA.md).
+- **`./tui-tools.sh`** — семейство [tui-tools](https://github.com/tui-tools)
+  для администрирования Linux-сервера (firewall, systemd, cron, сертификаты
+  и т.п.), только Linux. См. раздел в [README.md](README.md#tui-toolssh).
 
 Всё, что не удалось поставить автоматически, попадает в список
 "сделать вручную", который печатается в конце работы скрипта.

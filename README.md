@@ -12,9 +12,12 @@ setup.sh          — установка пакетов, конфигов, seed/
 update.sh         — бэкап + синхронизация конфигов с системой + коммит/пуш
 new-user.sh       — настройка уже созданного пользователя (в основном для macOS)
 samba-share.sh    — быстрый расшаринг каталога по SMB (macOS/Linux)
+tools-extra.sh    — доп. TUI/CLI-инструменты (yazi, bat, lazygit, k9s, ...)
+tui-tools.sh      — семейство tui-tools для администрирования Linux-сервера
 config/           — сами dotfiles (git, mc, nvim, tmux, zsh, alacritty, ssh, htop)
-lib/              — общие shell-хелперы (common.sh, packages.sh, deploy.sh, skel.sh)
+lib/              — общие shell-хелперы (common.sh, packages.sh, deploy.sh, skel.sh, tools_extra.sh)
 PACKAGES.md       — подробный список пакетов, которые ставит setup.sh
+TOOLS-EXTRA.md    — описание каждого инструмента из tools-extra.sh
 ```
 
 ## Быстрый старт
@@ -94,6 +97,41 @@ sudo ./new-user.sh <имя_пользователя>
 На macOS тумблер "File Sharing" в System Settings и первичное подтверждение
 пароля Apple не даёт включить из терминала — скрипт выведет точную
 подсказку, что доделать руками.
+
+### tools-extra.sh
+
+Ставит дополнительные TUI/CLI-инструменты, не входящие в базовый набор
+`setup.sh` (yazi, bat, lazygit, k9s, dust, bottom и т.д. — полный список с
+описанием каждого в [TOOLS-EXTRA.md](TOOLS-EXTRA.md)). macOS и Linux
+(apt/dnf/pacman/zypper/apk); там, где пакета нет в системном менеджере —
+`cargo install` (нужен `rust`, его ставит `setup.sh`) или бинарь с GitHub
+Releases.
+
+```bash
+./tools-extra.sh              # поставить все инструменты
+./tools-extra.sh bat yazi lnav  # поставить только перечисленные
+./tools-extra.sh --list         # список с описаниями, ничего не ставить
+```
+
+### tui-tools.sh
+
+Ставит семейство [tui-tools](https://github.com/tui-tools) — TUI для
+администрирования Linux-сервера: firewall (ufw/firewalld/nftables), systemd,
+снапшоты (snapper), сеть, аудит защищённости, пользователи, обновления,
+диски, ssh, логи, cron, сертификаты, контейнеры, samba. **Только Linux** —
+на macOS этих инструментов нет (проект целится именно в Linux-серверы).
+
+```bash
+./tui-tools.sh                  # поставить все 14 инструментов
+./tui-tools.sh firewall users   # поставить только перечисленные
+./tui-tools.sh --list           # список с описаниями, ничего не ставить
+```
+
+Каждый инструмент показывает точную команду перед тем, как её выполнить
+(preview-confirm-run) — сама установка ничего в системе не меняет. Но
+`tui-firewall`, `tui-users`, `tui-cron` и `tui-secure` умеют менять
+firewall, пользователей и cron, поэтому при использовании внимательно
+читайте, что предлагается выполнить, прежде чем подтверждать.
 
 ## Требования
 
