@@ -185,14 +185,28 @@ install_fonts() {
 }
 
 install_oh_my_zsh() {
-    if [[ -d "$HOME/.config/.oh-my-zsh" ]]; then
+    local zsh_dir="$HOME/.config/.oh-my-zsh"
+    # Проверяем не просто наличие каталога, а маркер внутри — если предыдущая
+    # попытка прервалась на середине (сеть, нехватка места), останется пустой
+    # или частично заполненный каталог, и его надо переустановить, а не молча
+    # считать готовым.
+    if [[ -f "$zsh_dir/oh-my-zsh.sh" ]]; then
         ok "oh-my-zsh уже установлен"
         return 0
     fi
-    info "Устанавливаю oh-my-zsh в ~/.config/.oh-my-zsh"
-    ZSH="$HOME/.config/.oh-my-zsh" sh -c \
-        "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" \
-        "" --unattended --keep-zshrc
+    info "Устанавливаю oh-my-zsh в $zsh_dir"
+    # $(curl ...) при сетевой ошибке возвращает пустую строку, а `sh -c ""`
+    # молча завершается кодом 0 (пустой скрипт — не ошибка) — поэтому curl
+    # запускаем отдельной командой и проверяем её код возврата явно, иначе
+    # неудачное скачивание тихо считалось бы успехом.
+    if ! retry 3 bash -c '
+        [[ -d "$1" ]] && rm -rf "$1"
+        installer="$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" || exit 1
+        ZSH="$1" sh -c "$installer" "" --unattended --keep-zshrc
+    ' _ "$zsh_dir"; then
+        err "oh-my-zsh не установился за 3 попытки (см. вывод выше) — похоже на сетевой сбой, а не ошибку конфигурации"
+        return 1
+    fi
 }
 
 install_oh_my_zsh_plugins() {
@@ -276,18 +290,25 @@ install_docker() {
         # ставим нативными пакетами. docker-compose-plugin и docker-buildx-plugin
         # (или их аналоги) добавлены явно, иначе `docker compose`/`docker buildx`
         # не работают "из коробки" после установки.
+        # retry: на свежей машине (только что поднятый VM) сеть иногда ещё не
+        # готова секунду-две — get.docker.com или сами репозитории пакетного
+        # менеджера могут не ответить с первого раза.
         case "$PKG_MANAGER" in
             apt|dnf)
-                curl -fsSL https://get.docker.com | $SUDO sh
+                # curl | sh отдельной командой: если curl не достучится до сети,
+                # он ничего не выведет, а `sh` на пустом stdin молча завершится
+                # кодом 0 — retry принял бы это за успех и не стал бы повторять.
+                # Поэтому скрипт качаем в переменную и явно проверяем код curl.
+                retry 3 bash -c "installer=\"\$(curl -fsSL https://get.docker.com)\" || exit 1; echo \"\$installer\" | $SUDO sh"
                 ;;
             pacman)
-                $SUDO pacman -S --noconfirm --needed docker docker-compose docker-buildx
+                retry 3 $SUDO pacman -S --noconfirm --needed docker docker-compose docker-buildx
                 ;;
             zypper)
-                $SUDO zypper --non-interactive install docker docker-compose docker-buildx
+                retry 3 $SUDO zypper --non-interactive install docker docker-compose docker-buildx
                 ;;
             apk)
-                $SUDO apk add docker docker-cli-compose docker-cli-buildx
+                retry 3 $SUDO apk add docker docker-cli-compose docker-cli-buildx
                 ;;
         esac
         if command -v docker >/dev/null 2>&1; then
