@@ -136,3 +136,34 @@ clone_or_update() {
         retry 3 bash -c '[[ -d "$1" && ! -d "$1/.git" ]] && rm -rf "$1"; git clone --quiet --depth 1 "$2" "$1"' _ "$dir" "$repo"
     fi
 }
+
+# cargo_install_clean <крейт...>
+# `cargo install`, но подчищает временные каталоги сборки в /tmp — при
+# неудаче cargo оставляет /tmp/cargo-install<случайное> навсегда (новое
+# случайное имя при каждом вызове, ничего не переиспользуется), и на
+# небольшом диске/VM несколько подряд неудачных cargo-сборок (yazi, termscp
+# c aws-lc-sys, termusic и т.п. — тяжёлые крейты) быстро приводят к
+# "No space left on device", из-за чего валятся уже вообще все следующие
+# установки, а не только реально проблемная. Подчищаем и до, и после.
+cargo_install_clean() {
+    rm -rf /tmp/cargo-install* 2>/dev/null || true
+    cargo install "$@"
+    local rc=$?
+    rm -rf /tmp/cargo-install* 2>/dev/null || true
+    return "$rc"
+}
+
+# warn_if_low_disk_space [путь] [минимум-в-МБ]
+# Rust-сборки тяжёлых крейтов (yazi, termscp, termusic, gpg-tui) требуют
+# заметно места во временном каталоге — предупреждаем заранее понятным
+# текстом вместо того, чтобы пользователь потом разбирал десятки строк
+# "No space left on device" вперемешку с сообщениями компилятора.
+warn_if_low_disk_space() {
+    local path="${1:-/tmp}" min_mb="${2:-2048}" avail_kb avail_mb
+    avail_kb="$(df -Pk "$path" 2>/dev/null | awk 'NR==2{print $4}')"
+    [[ -n "$avail_kb" ]] || return 0
+    avail_mb=$((avail_kb / 1024))
+    if [[ "$avail_mb" -lt "$min_mb" ]]; then
+        warn "Мало места на $path: ${avail_mb}МБ свободно (сборка тяжёлых Rust-пакетов может не уложиться) — освободите место или ставьте инструменты по одному"
+    fi
+}

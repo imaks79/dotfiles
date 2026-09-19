@@ -286,7 +286,8 @@ install_omp_manager() {
         return 1
     fi
     info "Устанавливаю omp-manager (TUI-мастер настройки Oh My Posh: темы, шрифты, шеллы)..."
-    if retry 3 cargo install omp-manager; then
+    warn_if_low_disk_space /tmp
+    if retry 3 cargo_install_clean omp-manager; then
         ok "omp-manager установлен"
     else
         warn "cargo install omp-manager не удался"

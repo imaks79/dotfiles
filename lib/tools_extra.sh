@@ -30,8 +30,9 @@ pkg_or_cargo() {
     fi
     info "$bin недоступен через пакетный менеджер, ставлю: cargo install $crate"
     ensure_build_toolchain
+    warn_if_low_disk_space /tmp
     # shellcheck disable=SC2086 # $crate иногда содержит несколько имён крейтов (yazi-fm yazi-cli)
-    if cargo install $crate; then
+    if cargo_install_clean $crate; then
         ok "$bin установлен через cargo"
     else
         warn "cargo install $crate не удался"
