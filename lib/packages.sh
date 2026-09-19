@@ -275,51 +275,22 @@ install_uv() {
     command -v uv >/dev/null 2>&1 && ok "uv установлен" || MANUAL_TODO+=("uv -> https://docs.astral.sh/uv/getting-started/installation/")
 }
 
-install_docker() {
-    if command -v docker >/dev/null 2>&1; then
-        ok "docker уже установлен"
+install_omp_manager() {
+    if command -v omp-manager >/dev/null 2>&1; then
+        ok "omp-manager уже установлен"
         return 0
     fi
-    info "Устанавливаю docker..."
-    if [[ "$OS" == "macos" ]]; then
-        pkg_cask docker ""
-        MANUAL_TODO+=("Docker Desktop поставлен как приложение — запустите его вручную один раз из /Applications")
-    else
-        # get.docker.com умеет только apt/dnf-семьи (Ubuntu/Debian/Fedora/CentOS/RHEL) —
-        # на Arch/openSUSE/Alpine скрипт падает с "Unsupported distribution", там
-        # ставим нативными пакетами. docker-compose-plugin и docker-buildx-plugin
-        # (или их аналоги) добавлены явно, иначе `docker compose`/`docker buildx`
-        # не работают "из коробки" после установки.
-        # retry: на свежей машине (только что поднятый VM) сеть иногда ещё не
-        # готова секунду-две — get.docker.com или сами репозитории пакетного
-        # менеджера могут не ответить с первого раза.
-        case "$PKG_MANAGER" in
-            apt|dnf)
-                # curl | sh отдельной командой: если curl не достучится до сети,
-                # он ничего не выведет, а `sh` на пустом stdin молча завершится
-                # кодом 0 — retry принял бы это за успех и не стал бы повторять.
-                # Поэтому скрипт качаем в переменную и явно проверяем код curl.
-                retry 3 bash -c "installer=\"\$(curl -fsSL https://get.docker.com)\" || exit 1; echo \"\$installer\" | $SUDO sh"
-                ;;
-            pacman)
-                retry 3 $SUDO pacman -S --noconfirm --needed docker docker-compose docker-buildx
-                ;;
-            zypper)
-                retry 3 $SUDO zypper --non-interactive install docker docker-compose docker-buildx
-                ;;
-            apk)
-                retry 3 $SUDO apk add docker docker-cli-compose docker-cli-buildx
-                ;;
-        esac
-        if command -v docker >/dev/null 2>&1; then
-            $SUDO usermod -aG docker "${USER:-$(id -un)}" 2>/dev/null || true
-            case "$PKG_MANAGER" in
-                pacman|zypper) $SUDO systemctl enable --now docker 2>/dev/null || true ;;
-                apk)            $SUDO rc-update add docker default 2>/dev/null || true
-                                 $SUDO service docker start 2>/dev/null || true ;;
-            esac
-            MANUAL_TODO+=("docker: перелогиньтесь (или выполните 'newgrp docker'), чтобы работать без sudo")
-        fi
+    if ! command -v cargo >/dev/null 2>&1; then
+        warn "cargo не найден, пропускаю omp-manager"
+        MANUAL_TODO+=("omp-manager -> https://github.com/psmux/omp-manager (нужен rust/cargo)")
+        return 1
     fi
-    command -v docker >/dev/null 2>&1 || MANUAL_TODO+=("docker -> https://docs.docker.com/engine/install/")
+    info "Устанавливаю omp-manager (TUI-мастер настройки Oh My Posh: темы, шрифты, шеллы)..."
+    if retry 3 cargo install omp-manager; then
+        ok "omp-manager установлен"
+    else
+        warn "cargo install omp-manager не удался"
+        MANUAL_TODO+=("omp-manager -> https://github.com/psmux/omp-manager")
+        return 1
+    fi
 }

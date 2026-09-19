@@ -3,7 +3,7 @@
 Личные dotfiles и bootstrap-скрипты для быстрого разворачивания окружения
 на macOS и Linux (apt/dnf/pacman/zypper/apk): zsh + oh-my-zsh, tmux
 (oh-my-tmux), neovim (AstroNvim), mc, alacritty, git, ssh, htop, eza,
-pass/gnupg, rust, uv, docker.
+pass/gnupg, rust, uv, omp-manager (Oh My Posh).
 
 ## Структура
 
@@ -143,7 +143,7 @@ firewall, пользователей и cron, поэтому при исполь
 
 Все шаги `setup.sh` идемпотентны (уже установленное просто пропускается) —
 если что-то упало, чаще всего достаточно **перезапустить `./setup.sh`**.
-Сетевые шаги (git clone, oh-my-zsh, docker) сами делают 3 попытки с паузой,
+Сетевые шаги (git clone, oh-my-zsh, omp-manager) сами делают 3 попытки с паузой,
 но на только что поднятой машине сеть иногда не готова дольше — тогда
 просто запустите скрипт ещё раз. В конце работы скрипт печатает, что упало
 (`FAILED_STEPS`) и что нужно сделать руками (`MANUAL_TODO`).

@@ -43,16 +43,12 @@
 |---|---|
 | rust | `rustup` (официальный установщик, обе ОС); перед сборкой на Linux ставится тулчейн — компилятор, `pkg-config`, заголовки openssl |
 | uv | brew (macOS) / официальный скрипт `astral.sh/uv/install.sh` (Linux) |
-| docker | brew cask "Docker" — Docker Desktop (macOS) / `get.docker.com` (apt, dnf) или нативные пакеты `docker docker-compose docker-buildx` (pacman, zypper; на apk — `docker docker-cli-compose docker-cli-buildx`) + добавление пользователя в группу `docker` (Linux) |
+| [omp-manager](https://github.com/psmux/omp-manager) | `cargo install omp-manager` (все ОС) — нет ни в одном пакетном менеджере, только crates.io |
 
-`get.docker.com` поддерживает только apt/dnf-семьи (Ubuntu/Debian/Fedora/
-CentOS/RHEL) — на Arch/openSUSE/Alpine он завершается с ошибкой "Unsupported
-distribution", поэтому там ставим нативными пакетами дистрибутива. Во всех
-случаях вместе с движком ставятся `docker compose` и `docker buildx` (как
-плагины) — без них "из коробки" работали бы только `docker build`/`docker
-run`, а `docker-compose.yml` и мультиarch-сборки требовали бы доустановки
-руками. Проверено `docker compose version` / `docker buildx version` в
-контейнерах ubuntu/archlinux/opensuse-tumbleweed/alpine.
+omp-manager — TUI-мастер для [Oh My Posh](https://ohmyposh.dev): ставит сам
+OMP, помогает подобрать Nerd Font, тему и настраивает шеллы через один
+интерфейс (`omp-manager` после установки). Нужен `cargo`, поэтому в
+`cmd_install()` идёт после `install_rust`.
 
 ## Шрифты (Nerd Fonts)
 
@@ -137,7 +133,7 @@ pkg_native <brew> <apt> <dnf> <pacman> <zypper> <apk>
 
 **Пакет со своим способом установки** (официальный curl-скрипт, cask,
 flatpak и т.п.) — по образцу `install_rust()`, `install_uv()`,
-`install_docker()` в `lib/packages.sh`: своя функция с проверкой
+`install_omp_manager()` в `lib/packages.sh`: своя функция с проверкой
 `command -v <бинарь>` в начале (чтобы не ставить повторно), и вызов этой
 функции из `cmd_install()` в `setup.sh`.
 

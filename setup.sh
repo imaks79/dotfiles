@@ -11,7 +11,7 @@
 # Устанавливает: oh-my-zsh (+ плагины zsh-autosuggestions,
 # zsh-syntax-highlighting), oh-my-tmux, git, ssh, zshrc, mc, alacritty, nvim
 # (+ ядро AstroNvim), htop, gitignore_global, pass, gpg, eza;
-# шрифты Hack/0xProto/JetBrainsMono Nerd Font; rust, uv, docker.
+# шрифты Hack/0xProto/JetBrainsMono Nerd Font; rust, uv, omp-manager.
 # zsh становится оболочкой по умолчанию (chsh).
 # Публикует dotfiles в /usr/local/share/dotfiles и раскладывает симлинки в
 # /etc/skel (Linux) — новые пользователи получают эти конфиги при создании;
@@ -34,7 +34,7 @@ cmd_install() {
     step "install_terminal"        install_terminal
     step "install_rust"            install_rust
     step "install_uv"              install_uv
-    step "install_docker"          install_docker
+    step "install_omp_manager"     install_omp_manager
     step "install_fonts"           install_fonts
     step "install_oh_my_zsh"       install_oh_my_zsh
     step "install_oh_my_zsh_plugins" install_oh_my_zsh_plugins
