@@ -1,0 +1,10 @@
+[user]
+	email = imaks9990@gmail.com
+	name = imaks79
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[core]
+	excludesfile = /Users/imaks/.config/git/.gitignore_global

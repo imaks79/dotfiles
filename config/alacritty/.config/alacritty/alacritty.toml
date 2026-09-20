@@ -1,0 +1,49 @@
+[general]
+import = [
+    "~/.config/alacritty/themes/themes/cyber_punk_neon.toml"
+]
+
+[font.bold]
+family = "0xProto Nerd Font Mono"
+style = "Bold"
+
+[font.italic]
+family = "0xProto Nerd Font Mono"
+style = "Italic"
+
+[font.normal]
+family = "0xProto Nerd Font Mono"
+style = "Regular"
+
+[font]
+size = 18.0
+
+[window]
+opacity = 0.6
+# startup_mode = "Maximized"
+
+[[keyboard.bindings]]
+action = "ToggleFullscreen"
+key = "F11"
+
+[[keyboard.bindings]]
+action = "ScrollPageUp"
+key = "K"
+mods = "Control|Shift"
+
+[[keyboard.bindings]]
+action = "ScrollPageDown"
+key = "J"
+mods = "Control|Shift"
+
+[scrolling]
+history = 10000
+
+[window.padding]
+x = 10
+y = 10
+
+[[keyboard.bindings]]
+key = "Return"
+mods = "Shift"
+chars = "\u001B\r"
