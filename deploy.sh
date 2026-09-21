@@ -67,11 +67,11 @@ stow_deploy() {
                 warn "$dst уже существует, сохраняю как $bak"
                 mv "$dst" "$bak"
             fi
-        done < <(find "$stow_dir/$pkg" -mindepth 1)
+        done < <(find "$stow_dir/$pkg" -mindepth 1 -not -name '.DS_Store')
     done
     [[ ${#valid_pkgs[@]} -eq 0 ]] && return 0
     mkdir -p "$target"
-    stow -R -d "$stow_dir" -t "$target" "${valid_pkgs[@]}"
+    stow -R -d "$stow_dir" -t "$target" --ignore='(^|/)\.DS_Store$' "${valid_pkgs[@]}"
 }
 
 cmd_deploy() {
@@ -92,7 +92,7 @@ cmd_deploy() {
 cmd_adopt() {
     command -v stow >/dev/null 2>&1 || { err "stow не найден в PATH"; exit 1; }
     info "Забираю в config/ файлы, оказавшиеся поверх симлинков реальными (stow --adopt)"
-    stow --adopt -d "$CONFIG_DIR" -t "$HOME" $(stow_packages "$CONFIG_DIR")
+    stow --adopt -d "$CONFIG_DIR" -t "$HOME" --ignore='(^|/)\.DS_Store$' $(stow_packages "$CONFIG_DIR")
     warn "Проверьте git -C \"$DOTFILES_DIR\" diff — --adopt затягивает live-файл как есть, без вопросов"
     ok "Готово. Дальше обычный git add/commit/push в $DOTFILES_DIR"
 }
