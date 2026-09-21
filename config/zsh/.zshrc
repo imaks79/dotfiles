@@ -1,4 +1,5 @@
 export ZSH="$HOME/.config/.oh-my-zsh"
+export PATH="/opt/homebrew/bin:$PATH"
 
 ZSH_THEME="robbyrussell"
 
