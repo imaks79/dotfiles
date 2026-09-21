@@ -22,26 +22,6 @@ ok()    { printf '%s[+]%s %s\n' "$C_GREEN"  "$C_RESET" "$*"; }
 warn()  { printf '%s[!]%s %s\n' "$C_YELLOW" "$C_RESET" "$*"; }
 err()   { printf '%s[x]%s %s\n' "$C_RED"    "$C_RESET" "$*" >&2; }
 
-# link_file <источник> <цель>
-# Простой symlink с бэкапом существующего файла. Единственное применение —
-# tmux.conf из oh-my-tmux ниже: он не входит в config/ (это не dotfile, а
-# файл уже склонированного пользователем oh-my-tmux), поэтому stow тут не
-# при чём.
-link_file() {
-    local src="$1" dst="$2"
-    mkdir -p "$(dirname "$dst")"
-    if [[ -L "$dst" ]]; then
-        [[ "$(readlink "$dst")" == "$src" ]] && return 0
-        rm "$dst"
-    elif [[ -e "$dst" ]]; then
-        local bak="${dst}.bak-$(date +%Y%m%d%H%M%S)"
-        warn "$dst уже существует, сохраняю как $bak"
-        mv "$dst" "$bak"
-    fi
-    ln -s "$src" "$dst"
-    ok "Симлинк: $dst -> $src"
-}
-
 # stow_packages <stow-каталог>
 # Перечисляет подкаталоги первого уровня — имена stow-пакетов. Единственный
 # источник истины о наборе пакетов: сама структура каталогов config/.
@@ -97,11 +77,6 @@ stow_deploy() {
 cmd_deploy() {
     command -v stow >/dev/null 2>&1 || { err "stow не найден в PATH — установите его (brew install stow / apt install stow / dnf install stow / pacman -S stow / zypper install stow / apk add stow)"; exit 1; }
     info "Раскладываю конфиги через stow"
-
-    mkdir -p "$HOME/.config/tmux"
-    if [[ -d "$HOME/.config/.oh-my-tmux" ]]; then
-        link_file "$HOME/.config/.oh-my-tmux/.tmux.conf" "$HOME/.config/tmux/tmux.conf"
-    fi
 
     chmod 600 "$CONFIG_DIR/ssh/.ssh/config" 2>/dev/null || true
     mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
