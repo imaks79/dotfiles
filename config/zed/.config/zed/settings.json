@@ -32,9 +32,9 @@
   "session": {
     "trust_all_worktrees": true,
   },
-  "vim_mode": true,
+  "vim_mode": false,
   "icon_theme": {
-    "mode": "dark",
+    "mode": "system",
     "light": "Zed (Default)",
     "dark": "Zed (Default)",
   },
@@ -43,7 +43,7 @@
   "buffer_font_size": 15,
   "buffer_font_family": "0xProto Nerd Font Mono",
   "theme": {
-    "mode": "dark",
+    "mode": "system",
     "light": "One Light",
     "dark": "Neon Cyberpunk",
   },

@@ -1,3 +1,12 @@
 [bookmarks]
 
-[recents]
+[recents.ISO20260924T153450]
+protocol = "SMB"
+address = "home"
+port = 445
+username = "smbuser"
+
+[recents.ISO20260924T153450.smb]
+share = "HOME"
+workgroup = ""
+dialect = "auto"
